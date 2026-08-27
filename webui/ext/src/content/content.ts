@@ -162,3 +162,38 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
   console.log('message received', request);
 });
+
+// Detect like/bookmark actions on Twitter/X to instantly trigger an update
+if (
+  window.location.hostname === 'x.com' ||
+  window.location.hostname === 'twitter.com' ||
+  window.location.hostname.endsWith('.x.com') ||
+  window.location.hostname.endsWith('.twitter.com')
+) {
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    if (
+      target.closest('[data-testid="like"]') ||
+      target.closest('[data-testid="unlike"]') ||
+      target.closest('[data-testid="bookmark"]') ||
+      target.closest('[data-testid="removeBookmark"]')
+    ) {
+      const tweet = target.closest('[data-testid="tweet"]');
+      if (!tweet) return;
+
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'data-testid') {
+            observer.disconnect();
+            update();
+            return;
+          }
+        }
+      });
+      observer.observe(tweet, { attributes: true, subtree: true, attributeFilter: ['data-testid'] });
+
+      // Fallback disconnect in case the action fails and the DOM never updates
+      setTimeout(() => observer.disconnect(), 2000);
+    }
+  });
+}

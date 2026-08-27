@@ -145,6 +145,13 @@ func tweetDocument(post *goquery.Selection, base *url.URL, userID uint) *sdk.Doc
 		metadata["published"] = published
 	}
 
+	if post.Find(`[data-testid="unlike"]`).Length() > 0 {
+		metadata["liked"] = true
+	}
+	if post.Find(`[data-testid="removeBookmark"]`).Length() > 0 {
+		metadata["bookmarked"] = true
+	}
+
 	title := "Twitter tweet"
 	if author != "" {
 		title += ": " + author
@@ -603,6 +610,13 @@ func tweetDocumentFromPage(doc *goquery.Document, base *url.URL, userID uint) *s
 	)
 	if image != "" {
 		metadata["image"] = image
+	}
+
+	if doc.Find(`[data-testid="unlike"]`).Length() > 0 {
+		metadata["liked"] = true
+	}
+	if doc.Find(`[data-testid="removeBookmark"]`).Length() > 0 {
+		metadata["bookmarked"] = true
 	}
 
 	title := "Twitter tweet"
